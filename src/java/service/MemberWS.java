@@ -24,7 +24,6 @@ import javax.ws.rs.core.GenericEntity;
 /**
  * REST Web Service
  */
-
 @Path("memberWS")
 public class MemberWS {
 
@@ -39,39 +38,38 @@ public class MemberWS {
 
     /**
      * Retrieves representation of an instance of service.MemberWS
+     *
      * @return an instance of java.lang.String
      */
-       
     //Done by Ryan Lye p1638611
     @GET
     @Path("getMember")
     @Consumes("application/json")
     @Produces("application/json")
-    public Response getMember(@QueryParam("email") String Email)throws ClassNotFoundException, SQLException 
- {
-             //TODO return proper representation object
+    public Response getMember(@QueryParam("email") String Email) throws ClassNotFoundException, SQLException {
+        //TODO return proper representation object
         //throw new UnsupportedOperationException();
         try {
+            // Step 1
             Class.forName("com.mysql.jdbc.Driver");
             // Step 2: Define Connection URL
             String connURL = "jdbc:mysql://localhost/islandfurniture-it07?user=root&password=12345";//DBConn.DBConnectionSettings.connectionURL;
             // Step 3: Establish connection to URL
             Connection conn = DriverManager.getConnection(connURL);
+
+            //Query
             //String sqlStr = "Select * from inventory where functions like '%" + searchString + "%' order by brand, model";
-            String sqlStr = "Select * from memberentity where email=? ";
-
+            String sqlStr = "SELECT * FROM memberentity WHERE email=? ";
             PreparedStatement pstmt = conn.prepareStatement(sqlStr);
-
             pstmt.setString(1, Email);
             ResultSet rs = pstmt.executeQuery();
 
+            //Debugging
             System.out.println(sqlStr);
-            
             System.out.println(rs);
-            
+
             Member mem = null;
-            
-            
+
             if (rs.next()) {
                 Long id = rs.getLong("id");
                 String phone = rs.getString("phone");
@@ -85,31 +83,32 @@ public class MemberWS {
                 String email = rs.getString("email");
                 int loyaltyPoints = rs.getInt("loyaltyPoints");
                 double cumulativeSpending = rs.getDouble("cumulativeSpending");
-                
-                mem = new Member(id, phone, address, city, securityQuestion, securityAnswer, 
-                        age, income, name, email, loyaltyPoints, cumulativeSpending);
 
+                mem = new Member(id, phone, address, city, securityQuestion, securityAnswer,
+                        age, income, name, email, loyaltyPoints, cumulativeSpending);
             }
+
             conn.close();
-            GenericEntity<Member> entity = new GenericEntity<Member>(mem) {};
+
+            GenericEntity<Member> entity = new GenericEntity<Member>(mem) {
+            };
             return Response
                     .status(200)
                     .entity(entity)
                     .build();
-            
+
         } catch (ClassNotFoundException | SQLException e) {
             System.out.println("error encountered..." + e.toString());
             return null;
         }
- }
-    
-    //Done by Mark Loh p1636846
+    }
+
     @Path("updateProfile")
     @POST
     @Consumes("application/json")
     //@Produces("application/json")
     public Response updateProfile(@QueryParam("name") String name, @QueryParam("email") String email, @QueryParam("phone") String phone, @QueryParam("city") String city, @QueryParam("address") String address,
-    @QueryParam("securityQuestion")int securityQuestion, @QueryParam("securityAnswer") String securityAnswer, @QueryParam("age") int age, @QueryParam("income")int income) {
+            @QueryParam("securityQuestion") int securityQuestion, @QueryParam("securityAnswer") String securityAnswer, @QueryParam("age") int age, @QueryParam("income") int income, @QueryParam("passwordhash") String passwordhash) {
         try {
             //Class.forName("com.sql.jdbc.Driver");
             String connURL = "jdbc:mysql://localhost/islandfurniture-it07?user=root&password=12345";
@@ -117,18 +116,19 @@ public class MemberWS {
             //String stmt = "UPDATE memberentity set name=? where email=?";
             String stmt = "UPDATE memberentity SET name=?, phone=?, city=?, address=?, securityquestion=?, securityanswer=?, age=?, income=? WHERE email=?";
             PreparedStatement ps = conn.prepareStatement(stmt);
-            
+
             ps.setString(1, name);
             ps.setString(2, phone);
             ps.setString(3, city);
             ps.setString(4, address);
             ps.setInt(5, securityQuestion);
             ps.setString(6, securityAnswer);
-            ps.setInt(7,age);
-            ps.setInt(8,income);
-            ps.setString(9,email);
+            ps.setInt(7, age);
+            ps.setInt(8, income);
+            ps.setString(9, email);
+
             int result = ps.executeUpdate();
-            
+
             if (result > 0) {
                 return Response.status(Response.Status.OK).build();
             }
@@ -137,13 +137,15 @@ public class MemberWS {
         }
         return Response.status(Response.Status.BAD_REQUEST).build();
     }
-    
+
     /**
      * PUT method for updating or creating an instance of MemberWS
+     *
      * @param content representation for the resource
      */
     @PUT
     @Consumes(MediaType.APPLICATION_XML)
     public void putXml(String content) {
     }
+
 }
